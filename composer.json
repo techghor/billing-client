@@ -1,0 +1,29 @@
+{
+    "name": "techghor/billing-client",
+    "description": "License and subscription verification client for TechGhor billing (billing.techghor.com.bd).",
+    "type": "library",
+    "keywords": ["laravel", "billing", "license", "techghor"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "guzzlehttp/guzzle": "^7.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "TechGhor\\BillingClient\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TechGhor\\BillingClient\\BillingClientServiceProvider"
+            ],
+            "aliases": {
+                "Billing": "TechGhor\\BillingClient\\Facades\\Billing"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
