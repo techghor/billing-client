@@ -198,10 +198,17 @@ class BillingService
         $url = rtrim((string) $this->cfg('server_url', 'https://billing.techghor.com.bd'), '/')
             . '/' . ltrim((string) $this->cfg('endpoint', '/api/v2/customer/billing-overview'), '/');
 
+        // The central server reads the key from X-Customer-Api-Key / X-Recurring-Group-Key.
+        // Bearer is sent as well so the package keeps working if the server adds Bearer support.
+        $keyHeader = $this->cfg('key_type', 'customer') === 'recurring'
+            ? 'X-Recurring-Group-Key'
+            : 'X-Customer-Api-Key';
+
         try {
             $response = $this->http->request('GET', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $apiKey,
+                    $keyHeader      => $apiKey,
                     'Accept'        => 'application/json',
                     'User-Agent'    => 'techghor-billing-client/1.0',
                 ],
@@ -228,7 +235,7 @@ class BillingService
 
             return $json['data'];
         } catch (Throwable $e) {
-            $this->log('error', 'Billing server request failed: ' . $e->getMessage());
+            $this->log('error', 'Billing server request failed: ' . str_replace($apiKey, '***', $e->getMessage()));
 
             return null;
         }
