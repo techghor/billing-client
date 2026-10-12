@@ -198,11 +198,13 @@ class BillingService
         $url = rtrim((string) $this->cfg('server_url', 'https://billing.techghor.com.bd'), '/')
             . '/' . ltrim((string) $this->cfg('endpoint', '/api/v2/customer/billing-overview'), '/');
 
-        // The central server reads the key from X-Customer-Api-Key / X-Recurring-Group-Key.
+        // The central server reads the key from X-Customer-Api-Key / X-Recurring-Group-Key / X-Payment-Hash.
         // Bearer is sent as well so the package keeps working if the server adds Bearer support.
-        $keyHeader = $this->cfg('key_type', 'customer') === 'recurring'
-            ? 'X-Recurring-Group-Key'
-            : 'X-Customer-Api-Key';
+        $keyHeader = match ($this->cfg('key_type', 'customer')) {
+            'recurring' => 'X-Recurring-Group-Key',
+            'invoice'   => 'X-Payment-Hash',
+            default     => 'X-Customer-Api-Key',
+        };
 
         try {
             $response = $this->http->request('GET', $url, [
@@ -253,6 +255,9 @@ class BillingService
         $candidates = [
             $data['customer']['public_dues_link'] ?? null,
             $data['recurring_profile']['public_dues_link'] ?? null,
+            $data['invoice']['public_pay_url'] ?? null,
+            $data['invoice']['public_dues_link'] ?? null,
+            $data['invoice']['pay_url'] ?? null,
         ];
 
         foreach ($candidates as $url) {

@@ -19,10 +19,10 @@ return [
 
     'endpoint' => '/api/v2/customer/billing-overview',
 
-    // Customer API Key or Recurring Group Key (sent as a Bearer token).
+    // Customer API Key, Recurring Group Key, or Invoice Payment Hash (sent as a Bearer token).
     'api_key' => env('BILLING_API_KEY'),
 
-    // 'customer' = Customer API Key (X-Customer-Api-Key), 'recurring' = Recurring Group Key (X-Recurring-Group-Key).
+    // 'customer' = Customer API Key (X-Customer-Api-Key), 'recurring' = Recurring Group Key (X-Recurring-Group-Key), 'invoice' = Invoice Payment Hash (X-Payment-Hash).
     'key_type' => env('BILLING_KEY_TYPE', 'customer'),
 
     /*
