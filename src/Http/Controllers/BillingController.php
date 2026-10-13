@@ -22,3 +22,4 @@ class BillingController extends Controller
         ]);
     }
 }
+

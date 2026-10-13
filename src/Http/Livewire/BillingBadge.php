@@ -48,3 +48,4 @@ class BillingBadge extends Component
         ]);
     }
 }
+
