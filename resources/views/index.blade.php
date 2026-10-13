@@ -223,6 +223,11 @@
                 </div>
             </div>
         </div>
+
+        {{-- Invoice History DataTable --}}
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
+            <x-techghor-billing::invoices-table :invoices="$invoices ?? ($overview['invoices'] ?? [])" :currency="$status['currency']" />
+        </div>
     </div>
 </x-techghor-billing::layout>
 

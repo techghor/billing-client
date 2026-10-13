@@ -57,6 +57,18 @@ class BillingService
     }
 
     /**
+     * Get the invoices array from the billing overview.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getInvoices(bool $forceRefresh = false): array
+    {
+        $overview = $this->getOverview($forceRefresh);
+
+        return is_array($overview['invoices'] ?? null) ? $overview['invoices'] : [];
+    }
+
+    /**
      * Evaluate the license.
      *
      * Result keys: valid, reason, message, currency, customer_name,

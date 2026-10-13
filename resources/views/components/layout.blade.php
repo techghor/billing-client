@@ -22,6 +22,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Billing & License Overview</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
     <body class="min-h-screen bg-slate-100 text-slate-800">
         <header class="bg-white border-b border-slate-200 px-6 py-4 shadow-xs">

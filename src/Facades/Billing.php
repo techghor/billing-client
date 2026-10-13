@@ -9,6 +9,7 @@ use TechGhor\BillingClient\Services\BillingService;
 
 /**
  * @method static array|null getOverview(bool $forceRefresh = false)
+ * @method static array getInvoices(bool $forceRefresh = false)
  * @method static array{
  *     valid: bool,
  *     reason: string,

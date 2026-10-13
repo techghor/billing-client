@@ -76,6 +76,16 @@ The sidebar badge `@livewire('billing.badge')` dynamically shows:
 - `Xd left` (amber/red badge) when expiring within warning days
 - Hidden when healthy and active
 
+### Invoice History DataTable
+
+The billing overview page includes a full interactive DataTable for invoice history with live search, status filtering, column sorting, pagination, and direct payment / PDF download links.
+
+You can also embed the table component independently anywhere:
+
+```blade
+<x-techghor-billing::invoices-table :invoices="$invoices" />
+```
+
 ## Usage
 
 ```php
@@ -83,6 +93,7 @@ use TechGhor\BillingClient\Facades\Billing;
 
 Billing::verify();            // ['valid' => bool, 'reason' => '...', ...]
 Billing::getOverview(true);   // force refresh
+Billing::getInvoices();       // array of invoices from central server
 Billing::clearCache();
 ```
 

@@ -13,12 +13,14 @@ class BillingController extends Controller
 {
     public function index(Request $request): Response
     {
-        $status = Billing::verify();
+        $status   = Billing::verify();
         $overview = Billing::getOverview();
+        $invoices = is_array($overview['invoices'] ?? null) ? $overview['invoices'] : [];
 
         return response()->view('techghor-billing::index', [
             'status'   => $status,
             'overview' => $overview,
+            'invoices' => $invoices,
         ]);
     }
 }
