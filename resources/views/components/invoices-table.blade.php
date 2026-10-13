@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <!-- DataTable Controls: Search, Filter, Page Size -->
+    <!-- DataTable Controls: Search, Filter, Page Size Responsive -->
     <div class="flex flex-wrap items-center justify-between gap-2.5 rounded-xl bg-white p-2.5 border border-slate-200 shadow-2xs">
         <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
             <!-- Live Search -->
