@@ -25,16 +25,19 @@
         $status = strtolower((string) ($inv['status'] ?? 'unpaid'));
 
         return [
-            'id'             => $inv['id'] ?? null,
-            'invoice_number' => (string) ($inv['invoice_number'] ?? ('INV-' . ($inv['id'] ?? '—'))),
-            'status'         => $status,
-            'total_amount'   => $total,
-            'paid_amount'    => $paid,
-            'due_amount'     => $due,
-            'issue_date'     => $inv['issue_date'] ?? '—',
-            'due_date'       => $inv['due_date'] ?? '—',
-            'public_view'    => $publicView,
-            'pdf_download'   => $pdfDownload,
+            'id'                   => $inv['id'] ?? null,
+            'invoice_number'       => (string) ($inv['invoice_number'] ?? ('INV-' . ($inv['id'] ?? '—'))),
+            'status'               => $status,
+            'total_amount'         => $total,
+            'paid_amount'          => $paid,
+            'due_amount'           => $due,
+            'issue_date'           => $inv['issue_date'] ?? '—',
+            'due_date'             => $inv['due_date'] ?? '—',
+            'recurring_profile_id' => $inv['recurring_profile_id'] ?? null,
+            'payment_hash'         => $hash,
+            'ref'                  => $hash ? (substr($hash, 0, 10) . '...' . substr($hash, -6)) : null,
+            'public_view'          => $publicView,
+            'pdf_download'         => $pdfDownload,
         ];
     })->values();
 
@@ -208,12 +211,32 @@
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                     <template x-for="(invoice, index) in paginatedItems" :key="invoice.id || index">
                         <tr class="hover:bg-slate-50/80 transition group">
-                            <!-- Invoice # -->
-                            <td class="px-3.5 py-2 font-semibold text-slate-900 whitespace-nowrap">
-                                <div class="flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <!-- Invoice # & Ref -->
+                            <td class="px-3.5 py-2 whitespace-nowrap">
+                                <div class="flex items-center gap-1.5 font-semibold text-slate-900">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     <span x-text="invoice.invoice_number"></span>
+                                    <template x-if="invoice.recurring_profile_id">
+                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100"
+                                              :title="'Recurring Profile ID #' + invoice.recurring_profile_id"
+                                              x-text="'#Profile ' + invoice.recurring_profile_id">
+                                        </span>
+                                    </template>
                                 </div>
+                                <template x-if="invoice.payment_hash">
+                                    <div class="mt-0.5 flex items-center gap-1 text-[10px] text-slate-400 font-normal">
+                                        <span class="text-slate-400 font-medium">Ref:</span>
+                                        <span class="font-mono text-slate-500 hover:text-indigo-600 transition"
+                                              x-text="invoice.ref"
+                                              :title="invoice.payment_hash"></span>
+                                        <button type="button"
+                                                @click="navigator.clipboard.writeText(invoice.payment_hash)"
+                                                class="text-slate-400 hover:text-indigo-600 transition"
+                                                title="Copy full payment hash">
+                                            <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                        </button>
+                                    </div>
+                                </template>
                             </td>
 
                             <!-- Issue Date -->
@@ -373,6 +396,7 @@
                     const q = this.search.trim().toLowerCase();
                     items = items.filter(i => {
                         return (i.invoice_number && i.invoice_number.toLowerCase().includes(q))
+                            || (i.payment_hash && i.payment_hash.toLowerCase().includes(q))
                             || (i.issue_date && i.issue_date.toLowerCase().includes(q))
                             || (i.due_date && i.due_date.toLowerCase().includes(q))
                             || (i.status && i.status.toLowerCase().includes(q))

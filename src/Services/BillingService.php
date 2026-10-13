@@ -264,13 +264,24 @@ class BillingService
 
     protected function resolvePayUrl(array $data): ?string
     {
-        $candidates = [
-            $data['customer']['public_dues_link'] ?? null,
-            $data['recurring_profile']['public_dues_link'] ?? null,
-            $data['invoice']['public_pay_url'] ?? null,
-            $data['invoice']['public_dues_link'] ?? null,
-            $data['invoice']['pay_url'] ?? null,
-        ];
+        $isRecurring = ($data['auth_type'] ?? '') === 'recurring'
+            || $this->cfg('key_type', 'customer') === 'recurring';
+
+        $candidates = $isRecurring
+            ? [
+                $data['recurring_profile']['public_dues_link'] ?? null,
+                $data['customer']['public_dues_link'] ?? null,
+                $data['invoice']['public_pay_url'] ?? null,
+                $data['invoice']['public_dues_link'] ?? null,
+                $data['invoice']['pay_url'] ?? null,
+            ]
+            : [
+                $data['customer']['public_dues_link'] ?? null,
+                $data['recurring_profile']['public_dues_link'] ?? null,
+                $data['invoice']['public_pay_url'] ?? null,
+                $data['invoice']['public_dues_link'] ?? null,
+                $data['invoice']['pay_url'] ?? null,
+            ];
 
         foreach ($candidates as $url) {
             if (! is_string($url) || $url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {

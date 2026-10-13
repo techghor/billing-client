@@ -1,3 +1,12 @@
+@php
+    $customer         = $overview['customer'] ?? [];
+    $recurringProfile = $overview['recurring_profile'] ?? [];
+    $license          = $overview['license'] ?? [];
+    $summary          = $overview['summary'] ?? [];
+    $authType         = $overview['auth_type'] ?? config('billing.key_type', 'customer');
+    $currencySymbol   = $status['currency'] ?? config('billing.currency', 'Tk.');
+@endphp
+
 <x-techghor-billing::layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -5,7 +14,7 @@
                 <h2 class="text-xl font-bold tracking-tight text-slate-900">
                     {{ __('Billing & License') }}
                 </h2>
-                <p class="text-xs text-slate-500 mt-0.5">Subscription status, license validity, grace period, and payment details.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Subscription overview, recurring profile, customer details, and invoice history.</p>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -52,9 +61,9 @@
             </div>
         @endif
 
-        {{-- Overview Cards --}}
+        {{-- Top 4 Overview Metric Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {{-- Status Card --}}
+            {{-- Card 1: License Status --}}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
                 <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                     <span>License State</span>
@@ -72,7 +81,7 @@
                 </p>
             </div>
 
-            {{-- Days Remaining Card --}}
+            {{-- Card 2: Days Remaining --}}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
                 <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                     <span>Days Remaining</span>
@@ -89,45 +98,47 @@
                     @endif
                 </div>
                 <p class="mt-1 text-[11px] text-slate-500">
-                    Expires on: <span class="font-medium text-slate-700">{{ $status['licence_end_date'] ?? 'No expiry' }}</span>
+                    Expires on: <span class="font-medium text-slate-700">{{ $license['licence_end_date'] ?? $status['licence_end_date'] ?? 'No expiry' }}</span>
                 </p>
             </div>
 
-            {{-- Grace Period Card --}}
+            {{-- Card 3: Total Billed & Paid --}}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
                 <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                    <span>Grace Period Ends</span>
-                    <span class="p-1 rounded-md bg-amber-50 text-amber-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Billed / Paid</span>
+                    <span class="p-1 rounded-md bg-emerald-50 text-emerald-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     </span>
                 </div>
-                <div class="mt-2 flex items-baseline gap-2">
-                    <span class="text-xl font-bold text-slate-900">
-                        {{ $status['grace_ends_at'] ?? 'None' }}
+                <div class="mt-2 flex items-baseline gap-1">
+                    <span class="text-xs font-medium text-slate-500">{{ $currencySymbol }}</span>
+                    <span class="text-2xl font-bold tabular-nums text-slate-900">
+                        {{ number_format((float) ($summary['total_billed'] ?? $summary['total_outstanding'] ?? $status['outstanding']), 2) }}
                     </span>
                 </div>
-                <p class="mt-1 text-[11px] text-slate-500">
-                    Grace buffer: <span class="font-medium text-slate-700">{{ config('billing.grace_period_days', 0) }} days</span>
+                <p class="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
+                    <span>Paid: <span class="font-semibold text-emerald-700">{{ $currencySymbol }} {{ number_format((float) ($summary['total_paid'] ?? 0), 2) }}</span></span>
+                    <span>{{ $summary['total_invoices'] ?? count($invoices) }} invoices</span>
                 </p>
             </div>
 
-            {{-- Outstanding Dues Card --}}
+            {{-- Card 4: Outstanding Dues --}}
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
                 <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                    <span>Amount Due</span>
+                    <span>Outstanding Dues</span>
                     <span class="p-1 rounded-md bg-rose-50 text-rose-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </span>
                 </div>
                 <div class="mt-2 flex items-baseline gap-1">
-                    <span class="text-xs font-medium text-slate-500">{{ $status['currency'] }}</span>
+                    <span class="text-xs font-medium text-slate-500">{{ $currencySymbol }}</span>
                     <span class="text-2xl font-bold tabular-nums {{ (float) $status['outstanding'] > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
                         {{ number_format((float) $status['outstanding'], 2) }}
                     </span>
                 </div>
                 <div class="mt-1 flex items-center justify-between">
                     <span class="text-[11px] text-slate-500">
-                        {{ (float) $status['outstanding'] > 0 ? 'Payment required' : 'All clear' }}
+                        {{ (float) $status['outstanding'] > 0 ? 'Payment pending' : 'Zero balance' }}
                     </span>
                     @if (! empty($status['pay_url']))
                         <a href="{{ $status['pay_url'] }}" target="_blank" rel="noopener noreferrer"
@@ -139,95 +150,185 @@
             </div>
         </div>
 
-        {{-- Details & Subscription Specs --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {{-- Account & Client Specs --}}
-            <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-                <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Account & License Profile</h3>
-                    <span class="text-[10px] text-slate-400">Verified at {{ $status['checked_at'] }}</span>
-                </div>
-
-                <div class="divide-y divide-slate-100 text-xs">
-                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span class="text-slate-500">Customer Account</span>
-                        <span class="font-semibold text-slate-800">{{ $status['customer_name'] ?? 'Not configured / Unknown' }}</span>
+        {{-- Returned Reference Profile Tables --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {{-- Customer Profile Reference Table --}}
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Customer Reference</h3>
                     </div>
-
-                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span class="text-slate-500">Key Type</span>
-                        <span class="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-700">
-                            {{ config('billing.key_type', 'customer') }}
-                            @if (config('billing.key_type') === 'invoice')
-                                (X-Payment-Hash)
-                            @elseif (config('billing.key_type') === 'recurring')
-                                (X-Recurring-Group-Key)
-                            @else
-                                (X-Customer-Api-Key)
-                            @endif
+                    @if (! empty($customer['id']))
+                        <span class="text-[10px] font-semibold bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                            ID: #{{ $customer['id'] }}
                         </span>
-                    </div>
-
-                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span class="text-slate-500">Billing Server</span>
-                        <span class="font-mono text-[11px] text-slate-600 truncate max-w-sm">{{ config('billing.server_url') }}</span>
-                    </div>
-
-                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span class="text-slate-500">Fail Open Strategy</span>
-                        <span class="font-medium {{ config('billing.fail_open') ? 'text-emerald-700' : 'text-amber-700' }}">
-                            {{ config('billing.fail_open') ? 'Active (Permits access when server unreachable)' : 'Locked (Locks app when unverified)' }}
-                        </span>
-                    </div>
-
-                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span class="text-slate-500">Cache TTL</span>
-                        <span class="text-slate-700">{{ config('billing.cache_ttl', 3600) }} seconds</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Quick Actions & Payment Portal --}}
-            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-2xs flex flex-col justify-between">
-                <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Subscription Actions</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed mb-4">
-                        Payments made to TechGhor billing are synced automatically. Use the button below to force an immediate refresh.
-                    </p>
-
-                    @if (! empty($status['pay_url']))
-                        <div class="rounded-lg bg-indigo-50 border border-indigo-100 p-3 mb-4">
-                            <p class="text-xs font-medium text-indigo-900 mb-2">Direct Payment Link Available</p>
-                            <a href="{{ $status['pay_url'] }}" target="_blank" rel="noopener noreferrer"
-                               class="w-full inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition">
-                                Pay via Portal
-                                <svg class="w-3.5 h-3.5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                            </a>
-                        </div>
                     @endif
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">
-                    <form method="POST" action="{{ route('billing.refresh') }}">
-                        @csrf
-                        <button type="submit"
-                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition shadow-2xs">
-                            Sync Status Now
-                        </button>
-                    </form>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-100 text-xs">
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40 w-1/3">Full Name</td>
+                                <td class="px-4 py-2.5 font-semibold text-slate-900">{{ $customer['name'] ?? $status['customer_name'] ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Email Address</td>
+                                <td class="px-4 py-2.5 text-slate-800">
+                                    @if (! empty($customer['email']))
+                                        <a href="mailto:{{ $customer['email'] }}" class="text-indigo-600 hover:underline">{{ $customer['email'] }}</a>
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Phone Number</td>
+                                <td class="px-4 py-2.5 text-slate-800">{{ $customer['phone'] ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Company / Org</td>
+                                <td class="px-4 py-2.5 text-slate-800">{{ $customer['company'] ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Customer Portal Link</td>
+                                <td class="px-4 py-2.5">
+                                    @if (! empty($customer['public_dues_link']))
+                                        <a href="{{ $customer['public_dues_link'] }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-800 hover:underline truncate max-w-xs"
+                                           title="{{ $customer['public_dues_link'] }}">
+                                            <span>Open Customer Portal</span>
+                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                    <a href="{{ url('/') }}"
-                       class="w-full inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-slate-500 hover:text-slate-800 transition">
-                        Return to Dashboard
-                    </a>
+            {{-- Recurring Profile / Subscription Reference Table --}}
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Recurring Profile & License Ref</h3>
+                    </div>
+                    @if (! empty($recurringProfile['id']))
+                        <span class="text-[10px] font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">
+                            Profile #{{ $recurringProfile['id'] }}
+                        </span>
+                    @endif
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-100 text-xs">
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40 w-1/3">Profile Title</td>
+                                <td class="px-4 py-2.5 font-semibold text-slate-900">
+                                    {{ $recurringProfile['title'] ?? ('Profile #' . ($recurringProfile['id'] ?? '1')) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Auth / Plan Type</td>
+                                <td class="px-4 py-2.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 font-mono">
+                                        {{ $authType }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Recurring Group Key</td>
+                                <td class="px-4 py-2.5">
+                                    @php
+                                        $groupKey = $recurringProfile['recurring_group_key'] ?? config('billing.api_key');
+                                    @endphp
+                                    @if (! empty($groupKey))
+                                        <div class="flex items-center gap-1.5 font-mono text-[11px] text-slate-800">
+                                            <span class="truncate max-w-[200px]" title="{{ $groupKey }}">{{ substr($groupKey, 0, 14) }}...{{ substr($groupKey, -6) }}</span>
+                                            <button type="button" onclick="navigator.clipboard.writeText('{{ $groupKey }}')"
+                                                    class="text-slate-400 hover:text-indigo-600 transition p-0.5" title="Copy full key">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                            </button>
+                                        </div>
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">License Expiry Date</td>
+                                <td class="px-4 py-2.5 font-semibold text-slate-800">
+                                    {{ $license['licence_end_date'] ?? $status['licence_end_date'] ?? 'No Expiry' }}
+                                    @if ($license['permit_date'] ?? null)
+                                        <span class="text-[10px] text-amber-600 font-normal ml-1">(Permitted until {{ $license['permit_date'] }})</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2.5 font-medium text-slate-500 bg-slate-50/40">Recurring Pay Link</td>
+                                <td class="px-4 py-2.5">
+                                    @php
+                                        $recurringLink = $recurringProfile['public_dues_link'] ?? $status['pay_url'];
+                                    @endphp
+                                    @if (! empty($recurringLink))
+                                        <a href="{{ $recurringLink }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 hover:underline truncate max-w-xs"
+                                           title="{{ $recurringLink }}">
+                                            <span>Open Recurring Dues Portal</span>
+                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
         {{-- Invoice History DataTable --}}
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
-            <x-techghor-billing::invoices-table :invoices="$invoices ?? ($overview['invoices'] ?? [])" :currency="$status['currency']" />
+            <x-techghor-billing::invoices-table :invoices="$invoices ?? ($overview['invoices'] ?? [])" :currency="$currencySymbol" />
+        </div>
+
+        {{-- Technical & Client Configuration Bar --}}
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-4">
+                <div>
+                    <span class="font-medium text-slate-400">Server:</span>
+                    <span class="font-mono text-slate-700 ml-1">{{ config('billing.server_url') }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-slate-400">Header:</span>
+                    <span class="font-mono text-slate-700 ml-1">
+                        @if (config('billing.key_type') === 'invoice')
+                            X-Payment-Hash
+                        @elseif (config('billing.key_type') === 'recurring')
+                            X-Recurring-Group-Key
+                        @else
+                            X-Customer-Api-Key
+                        @endif
+                    </span>
+                </div>
+                <div>
+                    <span class="font-medium text-slate-400">Cache:</span>
+                    <span class="text-slate-700 ml-1">{{ config('billing.cache_ttl', 3600) }}s</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span>Verified: {{ $status['checked_at'] }}</span>
+                <span class="text-slate-300">|</span>
+                <a href="{{ url('/') }}" class="text-indigo-600 hover:underline font-medium">Return to Dashboard</a>
+            </div>
         </div>
     </div>
 </x-techghor-billing::layout>
-
