@@ -77,4 +77,38 @@ return [
 
     // Where to send the user once the license is valid again.
     'redirect_after_valid' => '/',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expiration Warning & Notifications
+    |--------------------------------------------------------------------------
+    | Number of days before licence_end_date to start displaying warning badges
+    | and notification alerts in the UI.
+    */
+    'warning_days' => (int) env('BILLING_WARNING_DAYS', 14),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Layout configuration
+    |--------------------------------------------------------------------------
+    | Blade layout view or component to extend in the billing overview page.
+    */
+    'layout' => env('BILLING_LAYOUT', 'layouts.app'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Module Sidebar Menu
+    |--------------------------------------------------------------------------
+    | Automatically register into App\Modules\Core\Services\MenuService if present.
+    */
+    'menu' => [
+        'enabled' => env('BILLING_MENU_ENABLED', true),
+        'section' => env('BILLING_MENU_SECTION', 'Core System'),
+        'label'   => env('BILLING_MENU_LABEL', 'Billing & License'),
+        'icon'    => env('BILLING_MENU_ICON', 'receipt'),
+        'order'   => (int) env('BILLING_MENU_ORDER', 95),
+        'route'   => 'billing.index',
+        'active'  => 'billing.*',
+        'badge'   => 'billing.badge',
+    ],
 ];

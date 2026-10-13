@@ -29,6 +29,13 @@ class SuspendedController extends Controller
 
         $status = Billing::verify();
 
+        if (url()->previous() === route('billing.index')) {
+            return redirect()->route('billing.index')
+                ->with($status['valid'] ? 'status' : 'billing_notice', $status['valid']
+                    ? 'License status refreshed successfully.'
+                    : 'Status refreshed: ' . $status['message']);
+        }
+
         if ($status['valid']) {
             return redirect(config('billing.redirect_after_valid', '/'))
                 ->with('status', 'Your license is active again.');
